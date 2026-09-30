@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="CalculatriceMaui.MainPage"
+             Title="Calculatrice scientifique"
+             BackgroundColor="#0F1115"
+             ios:Page.UseSafeArea="True">
+
+    <ContentPage.Resources>
+        <Color x:Key="Surface">#1B1F27</Color>
+        <Color x:Key="KeyDigit">#2A2F3A</Color>
+        <Color x:Key="KeyFunction">#4B5364</Color>
+        <Color x:Key="KeyOperator">#F59E0B</Color>
+        <Color x:Key="KeyEquals">#10B981</Color>
+        <Color x:Key="KeyMode">#6366F1</Color>
+
+        <Style TargetType="Button">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinimumHeightRequest" Value="0" />
+            <Setter Property="MinimumWidthRequest" Value="0" />
+        </Style>
+        <Style TargetType="Button" Class="Digit">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyDigit}" />
+        </Style>
+        <Style TargetType="Button" Class="Function">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyFunction}" />
+        </Style>
+        <Style TargetType="Button" Class="Operator">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyOperator}" />
+        </Style>
+        <Style TargetType="Button" Class="Equals">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyEquals}" />
+        </Style>
+        <Style TargetType="Button" Class="Sci">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyFunction}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="WidthRequest" Value="62" />
+            <Setter Property="HeightRequest" Value="42" />
+            <Setter Property="Margin" Value="3" />
+        </Style>
+        <Style TargetType="Button" Class="Mode">
+            <Setter Property="BackgroundColor" Value="{StaticResource KeyMode}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="WidthRequest" Value="62" />
+            <Setter Property="HeightRequest" Value="42" />
+            <Setter Property="Margin" Value="3" />
+        </Style>
+    </ContentPage.Resources>
+
+    <!-- LAYOUT 1 : Grid racine (affichage, panneau scientifique, clavier), reconfigurée selon l'orientation -->
+    <Grid x:Name="RootGrid" Padding="10" RowSpacing="8" ColumnSpacing="8">
+
+        <!-- LAYOUT 2 : Border = carte d'affichage aux coins arrondis -->
+        <Border x:Name="DisplayCard"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="#2F3542" StrokeThickness="1"
+                StrokeShape="RoundRectangle 22"
+                Padding="14,10">
+
+            <!-- LAYOUT 3 : VerticalStackLayout = empile statut, historique et résultat -->
+            <VerticalStackLayout VerticalOptions="End" Spacing="2">
+
+                <!-- LAYOUT 4 : HorizontalStackLayout = barre de statut -->
+                <HorizontalStackLayout Spacing="8">
+                    <Label Text="Scientifique" TextColor="#8B93A5" FontSize="11" FontAttributes="Bold" />
+                    <Label x:Name="StatusLabel" Text="Prêt" TextColor="#10B981" FontSize="11" />
+                </HorizontalStackLayout>
+
+                <!-- LAYOUT 5 : ScrollView = évite tout débordement des longues expressions -->
+                <ScrollView x:Name="ExpressionScroll" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                    <Label x:Name="ExpressionLabel" Text="" TextColor="#8B93A5" FontSize="16"
+                           HorizontalTextAlignment="End" LineBreakMode="NoWrap" />
+                </ScrollView>
+
+                <ScrollView x:Name="ResultScroll" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                    <Label x:Name="ResultLabel" Text="0" TextColor="White" FontSize="44" FontAttributes="Bold"
+                           HorizontalTextAlignment="End" LineBreakMode="NoWrap"
+                           SemanticProperties.Description="Résultat affiché" />
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- LAYOUT 6 : FlexLayout = panneau des fonctions scientifiques, qui s'adapte à la largeur -->
+        <Border x:Name="SciCard" BackgroundColor="{StaticResource Surface}" Stroke="#2F3542" StrokeThickness="1"
+                StrokeShape="RoundRectangle 18" Padding="4">
+            <ScrollView Orientation="Vertical">
+                <FlexLayout x:Name="SciPanel" Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Center">
+                    <Button Text="DEG" x:Name="DegRadButton" StyleClass="Mode" Clicked="OnDegRadClicked" SemanticProperties.Description="Basculer degrés/radians" />
+                    <Button Text="(" StyleClass="Sci" CommandParameter="(" Clicked="OnFunctionClicked" />
+                    <Button Text=")" StyleClass="Sci" CommandParameter=")" Clicked="OnFunctionClicked" />
+                    <Button Text="π" StyleClass="Sci" CommandParameter="π" Clicked="OnFunctionClicked" />
+                    <Button Text="e" StyleClass="Sci" CommandParameter="e" Clicked="OnFunctionClicked" />
+                    <Button Text="Ans" StyleClass="Sci" CommandParameter="Ans" Clicked="OnFunctionClicked" />
+
+                    <Button Text="x²" StyleClass="Sci" CommandParameter="^2" Clicked="OnFunctionClicked" SemanticProperties.Description="Carré" />
+                    <Button Text="x³" StyleClass="Sci" CommandParameter="^3" Clicked="OnFunctionClicked" SemanticProperties.Description="Cube" />
+                    <Button Text="xʸ" StyleClass="Sci" CommandParameter="^" Clicked="OnFunctionClicked" SemanticProperties.Description="Puissance" />
+                    <Button Text="√x" StyleClass="Sci" CommandParameter="√(" Clicked="OnFunctionClicked" SemanticProperties.Description="Racine carrée" />
+                    <Button Text="ⁿ√x" StyleClass="Sci" CommandParameter="root(" Clicked="OnFunctionClicked" SemanticProperties.Description="Racine n-ième : root(x,n)" />
+                    <Button Text="1/x" StyleClass="Sci" CommandParameter="^(-1)" Clicked="OnFunctionClicked" SemanticProperties.Description="Inverse" />
+                    <Button Text="|x|" StyleClass="Sci" CommandParameter="abs(" Clicked="OnFunctionClicked" SemanticProperties.Description="Valeur absolue" />
+                    <Button Text="n!" StyleClass="Sci" CommandParameter="!" Clicked="OnFunctionClicked" SemanticProperties.Description="Factorielle" />
+                    <Button Text="×10ⁿ" StyleClass="Sci" CommandParameter="E" Clicked="OnFunctionClicked" SemanticProperties.Description="Notation scientifique" />
+
+                    <Button Text="log" StyleClass="Sci" CommandParameter="log(" Clicked="OnFunctionClicked" SemanticProperties.Description="Logarithme décimal" />
+                    <Button Text="ln" StyleClass="Sci" CommandParameter="ln(" Clicked="OnFunctionClicked" SemanticProperties.Description="Logarithme naturel" />
+                    <Button Text="eˣ" StyleClass="Sci" CommandParameter="e^(" Clicked="OnFunctionClicked" SemanticProperties.Description="Exponentielle" />
+                    <Button Text="10ˣ" StyleClass="Sci" CommandParameter="10^(" Clicked="OnFunctionClicked" />
+
+                    <Button Text="sin" StyleClass="Sci" CommandParameter="sin(" Clicked="OnFunctionClicked" />
+                    <Button Text="cos" StyleClass="Sci" CommandParameter="cos(" Clicked="OnFunctionClicked" />
+                    <Button Text="tan" StyleClass="Sci" CommandParameter="tan(" Clicked="OnFunctionClicked" />
+                    <Button Text="sin⁻¹" StyleClass="Sci" CommandParameter="asin(" Clicked="OnFunctionClicked" />
+                    <Button Text="cos⁻¹" StyleClass="Sci" CommandParameter="acos(" Clicked="OnFunctionClicked" />
+                    <Button Text="tan⁻¹" StyleClass="Sci" CommandParameter="atan(" Clicked="OnFunctionClicked" />
+                    <Button Text="sinh" StyleClass="Sci" CommandParameter="sinh(" Clicked="OnFunctionClicked" />
+                    <Button Text="cosh" StyleClass="Sci" CommandParameter="cosh(" Clicked="OnFunctionClicked" />
+                    <Button Text="tanh" StyleClass="Sci" CommandParameter="tanh(" Clicked="OnFunctionClicked" />
+
+                    <Button Text="mod" StyleClass="Sci" CommandParameter="mod" Clicked="OnFunctionClicked" SemanticProperties.Description="Modulo" />
+                    <Button Text="div" StyleClass="Sci" CommandParameter="div" Clicked="OnFunctionClicked" SemanticProperties.Description="Division euclidienne" />
+                </FlexLayout>
+            </ScrollView>
+        </Border>
+
+        <!-- Clavier principal : Grid 5 lignes x 4 colonnes -->
+        <Grid x:Name="KeypadGrid" RowSpacing="7" ColumnSpacing="7">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" /><RowDefinition Height="*" /><RowDefinition Height="*" />
+                <RowDefinition Height="*" /><RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Row="0" Grid.Column="0" Text="AC" StyleClass="Function" CommandParameter="CLEAR" Clicked="OnActionClicked" SemanticProperties.Description="Tout effacer" />
+            <Button Grid.Row="0" Grid.Column="1" Text="⌫" StyleClass="Function" CommandParameter="BACK" Clicked="OnActionClicked" SemanticProperties.Description="Effacer le dernier caractère" />
+            <Button Grid.Row="0" Grid.Column="2" Text="%" StyleClass="Function" CommandParameter="%" Clicked="OnFunctionClicked" SemanticProperties.Description="Pourcentage" />
+            <Button Grid.Row="0" Grid.Column="3" Text="÷" StyleClass="Operator" CommandParameter="÷" Clicked="OnFunctionClicked" SemanticProperties.Description="Diviser" />
+
+            <Button Grid.Row="1" Grid.Column="0" Text="7" StyleClass="Digit" CommandParameter="7" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="1" Grid.Column="1" Text="8" StyleClass="Digit" CommandParameter="8" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="1" Grid.Column="2" Text="9" StyleClass="Digit" CommandParameter="9" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="1" Grid.Column="3" Text="×" StyleClass="Operator" CommandParameter="×" Clicked="OnFunctionClicked" SemanticProperties.Description="Multiplier" />
+
+            <Button Grid.Row="2" Grid.Column="0" Text="4" StyleClass="Digit" CommandParameter="4" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="2" Grid.Column="1" Text="5" StyleClass="Digit" CommandParameter="5" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="2" Grid.Column="2" Text="6" StyleClass="Digit" CommandParameter="6" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="2" Grid.Column="3" Text="−" StyleClass="Operator" CommandParameter="-" Clicked="OnFunctionClicked" SemanticProperties.Description="Soustraire" />
+
+            <Button Grid.Row="3" Grid.Column="0" Text="1" StyleClass="Digit" CommandParameter="1" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="3" Grid.Column="1" Text="2" StyleClass="Digit" CommandParameter="2" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="3" Grid.Column="2" Text="3" StyleClass="Digit" CommandParameter="3" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="3" Grid.Column="3" Text="+" StyleClass="Operator" CommandParameter="+" Clicked="OnFunctionClicked" SemanticProperties.Description="Additionner" />
+
+            <Button Grid.Row="4" Grid.Column="0" Text="Ans" StyleClass="Function" CommandParameter="Ans" Clicked="OnFunctionClicked" SemanticProperties.Description="Résultat précédent" />
+            <Button Grid.Row="4" Grid.Column="1" Text="0" StyleClass="Digit" CommandParameter="0" Clicked="OnFunctionClicked" />
+            <Button Grid.Row="4" Grid.Column="2" Text="," StyleClass="Digit" CommandParameter="." Clicked="OnFunctionClicked" SemanticProperties.Description="Virgule décimale" />
+            <Button Grid.Row="4" Grid.Column="3" Text="=" StyleClass="Equals" CommandParameter="EQUALS" Clicked="OnActionClicked" SemanticProperties.Description="Égal" />
+        </Grid>
+    </Grid>
+</ContentPage>
